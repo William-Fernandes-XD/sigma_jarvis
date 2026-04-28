@@ -12,20 +12,28 @@ const HomePageVoz = () => {
   // --- FUNÇÃO PARA A IA FALAR (ESTILO JARVIS) ---
   const jarvisSpeak = useCallback((texto: string) => {
     if ('speechSynthesis' in window) {
-      // Cancela falas anteriores para não sobrepor
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(texto);
-      utterance.lang = 'pt-BR';
-      utterance.rate = 0.9; // Um pouco mais lento para soar imponente
-      utterance.pitch = 0.8; // Tom mais grave para o estilo Jarvis
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(texto);
 
-      utterance.onstart = () => setStatus('falando');
-      utterance.onend = () => setStatus('ocioso');
+        const voices = window.speechSynthesis.getVoices();
 
-      window.speechSynthesis.speak(utterance);
+        const jarvisVoice = voices.find(voice => 
+        voice.name.includes('Thomaz') || 
+        voice.name.includes('Daniel') || 
+        (voice.name.includes('Male') && voice.lang.includes('pt-BR'))
+        );
+
+        if (jarvisVoice) {
+        utterance.voice = jarvisVoice;
+        }
+
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.5;  // Velocidade levemente reduzida
+        utterance.pitch = 0.8; // Tom mais grave
+
+        window.speechSynthesis.speak(utterance);
     }
-  }, []);
+    }, []);
 
   // --- EFEITO DE BOAS-VINDAS ---
   useEffect(() => {
