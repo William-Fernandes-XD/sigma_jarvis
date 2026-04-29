@@ -59,6 +59,19 @@ const HomePageVoz = () => {
           const data = await response.json();
           setFeedbackText(data.resposta);
           jarvisSpeak(data.resposta);
+          
+          if (data.tipo === "abrir_link" && data.url) {
+              // Criamos um elemento de link oculto
+              const link = document.createElement('a');
+              link.href = data.url;
+              link.target = '_blank'; // Força nova aba
+              link.rel = 'noopener noreferrer';
+              
+              // Pequeno delay para a voz começar
+              setTimeout(() => {
+                  link.click(); // Simula o clique do usuário
+              }, 1000);
+          }
         } catch (error) {
           console.error("Erro no fetch:", error);
           setFeedbackText("Servidor offline.");
