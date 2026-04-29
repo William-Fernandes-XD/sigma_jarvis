@@ -8,54 +8,51 @@ app.use(cors());
 app.use(express.json());
 
 const genAI = new GoogleGenerativeAI("AIzaSyD6WusmSiHrhS3ro2b0SG2wdrZNfp1q3Qw");
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// Mude para 1.5-flash, o 2.5-flash está com limites muito rígidos no beta
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: 'v1' });
 
 app.post('/comando', async (req, res) => {
+    const { comando } = req.body;
+    const ordem = comando.toLowerCase().trim();
+
+    console.log("Analisando ordem:", ordem);
+
+    // --- ESCUDO DE COTA: Comandos que não precisam de IA ---
+    if (ordem.includes("youtube")) {
+        exec('start https://www.youtube.com');
+        return res.json({ resposta: "Abrindo o YouTube, senhor." });
+    }
+    if (ordem.includes("spotify") || ordem.includes("música")) {
+        exec('start spotify:');
+        return res.json({ resposta: "Iniciando o sistema de áudio Spotify." });
+    }
+    if (ordem.includes("calculadora")) {
+        exec('start calc');
+        return res.json({ resposta: "Calculadora operacional." });
+    }
+    if (ordem.includes("netflix")) {
+        exec('start https://www.netflix.com');
+        return res.json({ resposta: "Acessando Netflix." });
+    }
+
+    // --- SE NÃO FOR COMANDO RÁPIDO, CHAMA A IA ---
     try {
-        const { comando } = req.body;
-        const ordem = comando.toLowerCase().trim();
+        const prompt = `Você é o Jarvis. Explique de forma breve e elegante: "${comando}"`;
 
-        if (ordem.includes("toca") || ordem.includes("reproduzir") || ordem.includes("ouvir")) {
-            let busca = ordem.replace('jarvis', '').replace('toca', '').replace('reproduzir', '').trim();
-            
-            return res.json({ 
-                resposta: `Procurando por ${busca} no banco de dados musical, senhor.`,
-                tipo: "video_search",
-                query: busca 
-            });
-        }
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }]
+        });
 
-        if (ordem.includes("calculadora")) {
-            exec('start calc');
-            return res.json({ resposta: "Calculadora operacional." });
-        }
-
-        try {
-            const prompt = `Aja estritamente como o JARVIS (Homem de Ferro). 
-            - Seja altamente sofisticado, britânico e prestativo.
-            - Use termos como "Senhor", "Protocolos", "Interface Neural", "Sistemas operacionais".
-            - Se o usuário pedir algo, responda com elegância: "Imediatamente, senhor" ou "Como desejar".
-            - O usuário disse: "${comando}"`;
-            const result = await model.generateContent(prompt);
-            const text = result.response.text();
-            return res.json({ resposta: text.trim(), tipo: "texto" });
-
-        } catch (aiError) {
-            console.log(aiError);
-            if (aiError.message.includes("429")) {
-                let delay = "alguns segundos";
-                try {
-                    const retry = aiError.response.error.details.find(d => d.retryDelay);
-                    delay = retry.retryDelay.replace('s', ' segundos');
-                } catch(e) {}
-                return res.json({ resposta: `Cota excedida, senhor. Estarei disponível em ${delay}.` });
-            }
-            throw aiError;
-        }
+        const responseText = result.response.text().trim();
+        res.json({ resposta: responseText });
 
     } catch (error) {
-        res.json({ resposta: "Sistemas instáveis." });
+        if (error.message.includes("429")) {
+            console.error("LIMITE DE COTA ATINGIDO");
+            return res.json({ resposta: "Senhor, excedemos o limite de comunicações com o núcleo central. Por favor, aguarde um minuto." });
+        }
+        res.json({ resposta: "Erro no processamento, senhor." });
     }
 });
 
-app.listen(3001, () => console.log("Jarvis Engine v5.0 Online"));
+app.listen(3001, () => console.log("Jarvis operando com proteção de cota na porta 3001"));
