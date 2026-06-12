@@ -1,32 +1,37 @@
 {
-  "name": "projeto_jarvis",
-  "version": "0.1.0",
+  "name": "sigma-jarvis",
+  "version": "2.0.0",
+  "description": "Assistente de IA com controle total do PC - Voz, Chat e Automação",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "api": "node api/server.js",
+    "api-dev": "nodemon api/server.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "framer-motion": "^12.38.0",
-    "next": "16.2.4",
-    "openai": "^6.35.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react": "^18",
+    "react-dom": "^18",
+    "next": "14.0.0",
+    "axios": "^1.6.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "robotjs": "^0.6.0",
+    "node-xlsx": "^0.24.0",
+    "excel4node": "^1.7.2",
+    "pyright": "^1.1.297"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "typescript": "^5",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.4",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "nodemon": "^3.0.1"
   }
 }

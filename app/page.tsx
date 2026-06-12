@@ -1,65 +1,156 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import ChatInterface from './components/ChatInterface';
+import VoiceInterface from './components/VoiceInterface';
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<'chat' | 'voice'>('voice');
+  const [isListening, setIsListening] = useState(false);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    initializeSpeechRecognition();
+  }, []);
+
+  const initializeSpeechRecognition = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.error('Speech Recognition não suportado');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'pt-BR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      // Verificar palavra-chave "Jarvis"
+      if (transcript.toLowerCase().includes('jarvis')) {
+        console.log('✅ Palavra-chave detectada!');
+        handleVoiceCommand(transcript);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Erro no reconhecimento:', event.error);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      // Reiniciar para sempre estar ouvindo
+      setTimeout(() => recognition.start(), 1000);
+    };
+
+    recognition.start();
+    recognitionRef.current = recognition;
+  };
+
+  const handleVoiceCommand = async (command: string) => {
+    // Remover "Jarvis" do comando
+    const cleanCommand = command.replace(/jarvis[.,!?]?/i, '').trim();
+
+    if (!cleanCommand) return;
+
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: cleanCommand })
+      });
+
+      const data = await response.json();
+      const reply = data.response || 'Desculpe, não consegui processar.';
+
+      setMessages(prev => [
+        ...prev,
+        { role: 'user', content: cleanCommand },
+        { role: 'assistant', content: reply }
+      ]);
+
+      // Fazer Jarvis falar
+      await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: reply })
+      });
+    } catch (error) {
+      console.error('Erro:', error);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-blue-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="text-5xl">🤖</div>
+            <h1 className="text-5xl font-bold text-white drop-shadow-lg">SIGMA JARVIS</h1>
+          </div>
+          <p className="text-purple-200 text-lg">Assistente de IA com Controle Total do PC</p>
+          <p className="text-purple-300 text-sm mt-2">
+            {isListening ? '🎤 Ouvindo por palavra-chave "Jarvis"...' : '⏸️ Microfone inativo'}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Tabs */}
+        <div className="flex gap-4 justify-center mb-8">
+          <button
+            onClick={() => setActiveTab('voice')}
+            className={`px-8 py-3 rounded-lg font-semibold transition ${
+              activeTab === 'voice'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-purple-700 text-purple-200 hover:bg-purple-600'
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            🎤 Controle por Voz
+          </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`px-8 py-3 rounded-lg font-semibold transition ${
+              activeTab === 'chat'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-blue-700 text-blue-200 hover:bg-blue-600'
+            }`}
           >
-            Documentation
-          </a>
+            💬 Chat
+          </button>
         </div>
-      </main>
+
+        {/* Content */}
+        <div className="max-w-4xl mx-auto">
+          {activeTab === 'voice' ? (
+            <VoiceInterface isListening={isListening} messages={messages} />
+          ) : (
+            <ChatInterface messages={messages} setMessages={setMessages} />
+          )}
+        </div>
+
+        {/* Instructions */}
+        <div className="mt-12 max-w-2xl mx-auto bg-purple-900 bg-opacity-50 rounded-lg p-6 border border-purple-700">
+          <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+            <span>📝</span> Como Usar
+          </h3>
+          <ul className="text-purple-200 space-y-2">
+            <li>✅ Diga "Jarvis..." para ativar o reconhecimento de voz</li>
+            <li>✅ Exemplos: "Jarvis abra o YouTube", "Jarvis qual é a hora?"</li>
+            <li>✅ Use o Chat para enviar mensagens por texto</li>
+            <li>✅ O Jarvis responde com voz automaticamente</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
