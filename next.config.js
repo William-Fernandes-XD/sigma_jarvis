@@ -1,1 +1,10 @@
-/** @type {import('next').NextConfig} */\nconst nextConfig = {\n  reactStrictMode: true,\n  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],\n  typescript: {\n    ignoreBuildErrors: false,\n  },\n};\n\nmodule.exports = nextConfig;\n
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+};
+
+module.exports = nextConfig;
