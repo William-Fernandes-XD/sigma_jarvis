@@ -1,0 +1,1 @@
+/** @type {import('next').NextConfig} */\nconst nextConfig = {\n  reactStrictMode: true,\n  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],\n  typescript: {\n    ignoreBuildErrors: false,\n  },\n};\n\nmodule.exports = nextConfig;\n
