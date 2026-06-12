@@ -1,25 +1,25 @@
-# 🤖 SIGMA JARVIS - Assistente de IA com Controle Total do PC
+# 🤖 SIGMA JARVIS - Node 24 Otimizado
 
 Assistente inteligente com reconhecimento de voz, síntese de fala e controle completo do seu computador via comandos em português.
 
 ## ✨ Funcionalidades
 
+✅ **Node.js 24** - Otimizado para a versão mais recente  
+✅ **Sem RobotJS** - Removido para máxima compatibilidade  
 ✅ **Reconhecimento de Voz** - Detecta palavra-chave "Jarvis" e ouve comandos  
 ✅ **Síntese de Fala** - Responde com voz em português  
 ✅ **Chat Textual** - Comunique-se via texto também  
 ✅ **IA Offline** - Usa Ollama com modelos locais  
-✅ **Controle de Aplicativos** - Abra Excel, Word, Chrome, Firefox, etc  
+✅ **Controle de Aplicativos** - Abra Excel, Word, Chrome, Firefox, PowerPoint, etc  
 ✅ **Criação de Arquivos** - Crie documentos automaticamente  
-✅ **Automação de PC** - Controle volume, abra URLs, etc  
-✅ **Histórico de Conversa** - Mantém contexto das mensagens  
-✅ **Interface Moderna** - Design responsivo e intuitivo  
+✅ **Pesquisa Web** - Busque informações na internet  
+✅ **Interface Moderna** - Design responsivo com Tailwind CSS  
 
 ## 🚀 Instalação
 
 ### Pré-requisitos
-- Node.js 18+
-- Ollama (https://ollama.ai)
-- Python 3.8+ (opcional, para recursos avançados)
+- **Node.js 24+** (https://nodejs.org)
+- **Ollama** (https://ollama.ai)
 
 ### Passo 1: Clonar Repositório
 ```bash
@@ -37,7 +37,7 @@ npm install
 cp .env.example .env
 ```
 
-### Passo 4: Instalar e Rodar Ollama
+### Passo 4: Instalar Ollama
 
 **Windows/macOS:**
 1. Baixe em https://ollama.ai
@@ -55,12 +55,12 @@ ollama run mistral
 
 ### Passo 5: Rodar o Projeto
 
-**Terminal 1 - Backend API:**
+**Terminal 1 - Backend API (Node 24):**
 ```bash
 npm run api
 ```
 
-**Terminal 2 - Frontend:**
+**Terminal 2 - Frontend (Next.js):**
 ```bash
 npm run dev
 ```
@@ -91,6 +91,8 @@ http://localhost:3000
 ✅ "Jarvis aumente o volume"
 ✅ "Jarvis crie um arquivo"
 ✅ "Jarvis abra o Spotify"
+✅ "Jarvis pesquise sobre Python"
+✅ "Jarvis abra a pasta de documentos"
 ```
 
 ### Modo Chat
@@ -101,7 +103,7 @@ http://localhost:3000
 
 ## ⚙️ Configurações
 
-### Ajustar Timeout (para PCs lentos)
+### Aumentar Timeout (para PCs lentos)
 
 Edit `.env`:
 ```env
@@ -150,7 +152,7 @@ ollama serve  # Em outro terminal
 
 ### "Erro: module not found"
 ```bash
-rm -rf node_modules
+rm -rf node_modules package-lock.json
 npm install
 ```
 
@@ -159,7 +161,7 @@ npm install
 ```
 sigma_jarvis/
 ├── api/
-│   ├── server.js                 # Backend API
+│   ├── server.js                 # Backend API (Node 24)
 │   └── modules/
 │       ├── ai.js                 # Integração com Ollama
 │       ├── tts.js                # Síntese de voz
@@ -174,24 +176,20 @@ sigma_jarvis/
 │       └── VoiceInterface.tsx     # Interface de Voz
 ├── .env.example                  # Variáveis de ambiente
 ├── package.json                  # Dependências
-└── next.config.ts                # Configuração Next.js
+├── next.config.ts                # Configuração Next.js
+└── README.md                      # Este arquivo
 ```
 
-## 🔧 Desenvolver
+## 🔄 Alterações da Atualização
 
-### Adicionar Novo Comando de Voz
+- ✅ **Node 24** suportado completamente
+- ✅ **RobotJS removido** - Causa incompatibilidade
+- ✅ **Comandos mais simples** - Usar child_process nativo
+- ✅ **Melhor reconhecimento de voz** - Detecção de "Jarvis" otimizada
+- ✅ **Mais comandos disponíveis** - PowerPoint, pesquisa web, etc
+- ✅ **Tratamento de erros melhorado**
 
-Edite `api/modules/pc-controller.js`:
-
-```javascript
-// Novo comando
-if (lower.includes('meu comando')) {
-  // Sua ação aqui
-  return { message: 'Resposta', action: 'my_action' };
-}
-```
-
-### Melhorias Futuras
+## 🚀 Próximos Passos
 
 - [ ] Integração com Spotify API
 - [ ] Controle de Automação Office (VBA)
@@ -199,12 +197,12 @@ if (lower.includes('meu comando')) {
 - [ ] Suporte a múltiplas vozes
 - [ ] Agendamento de Tarefas
 - [ ] Integração com Google Calendar
-- [ ] Controle de Smart Home
 
 ## 📚 Recursos
 
 - [Documentação Ollama](https://ollama.ai/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
+- [Node.js 24](https://nodejs.org/en/docs/)
 - [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
 
 ## 📝 Licença
@@ -218,6 +216,6 @@ MIT License - veja LICENSE.md para detalhes
 
 ---
 
-**Desenvolvido com ❤️ em Node.js + Next.js**
+**Desenvolvido com ❤️ em Node.js 24 + Next.js**
 
 🤖 **Divirta-se com SIGMA JARVIS!**

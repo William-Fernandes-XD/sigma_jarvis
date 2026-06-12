@@ -104,33 +104,11 @@ app.post('/api/pc-control', async (req, res) => {
   }
 });
 
-// Rota de Excel
-app.post('/api/excel', async (req, res) => {
-  try {
-    const { action, data } = req.body;
-    const result = await pcController.excelControl(action, data);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Rota de Arquivos
-app.post('/api/files', async (req, res) => {
-  try {
-    const { action, data } = req.body;
-    const result = await pcController.fileControl(action, data);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 app.listen(PORT, async () => {
-  console.log('\n╔════════════════════════════════════════════════════════════╗');
-  console.log('║  🤖 SIGMA JARVIS - Backend API                            ║');
-  console.log(`║  Servidor rodando em http://localhost:${PORT}              ║`);
-  console.log('╚════════════════════════════════════════════════════════════╝\n');
+  console.log('\n╔════════════════════════════════════════════════════════════════╗');
+  console.log('║  🤖 SIGMA JARVIS - Backend API (Node 24)                      ║');
+  console.log(`║  Servidor rodando em http://localhost:${PORT}                  ║`);
+  console.log('╚════════════════════════════════════════════════════════════════╝\n');
 
   try {
     await checkOllama();

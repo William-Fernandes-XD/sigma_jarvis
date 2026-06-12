@@ -4,18 +4,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import ChatInterface from './components/ChatInterface';
 import VoiceInterface from './components/VoiceInterface';
 
+const API_URL = 'http://localhost:3001';
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'chat' | 'voice'>('voice');
   const [isListening, setIsListening] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
   const recognitionRef = useRef<any>(null);
+  const listenerActiveRef = useRef(false);
 
   useEffect(() => {
     initializeSpeechRecognition();
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
   }, []);
 
   const initializeSpeechRecognition = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.error('Speech Recognition não suportado');
       return;
@@ -28,18 +37,27 @@ export default function Home() {
 
     recognition.onstart = () => {
       setIsListening(true);
+      listenerActiveRef.current = true;
     };
 
     recognition.onresult = (event: any) => {
       let transcript = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
+        transcript += event.results[i][0].transcript + ' ';
       }
 
-      // Verificar palavra-chave "Jarvis"
-      if (transcript.toLowerCase().includes('jarvis')) {
-        console.log('✅ Palavra-chave detectada!');
-        handleVoiceCommand(transcript);
+      transcript = transcript.toLowerCase().trim();
+
+      // Detectar "Jarvis" no início
+      if (transcript.includes('jarvis')) {
+        // Extrair comando após "Jarvis"
+        const commandMatch = transcript.match(/jarvis[.,!?\s]*(.+)/i);
+        const command = commandMatch ? commandMatch[1].trim() : transcript.replace(/jarvis/i, '').trim();
+
+        if (command && event.results[event.results.length - 1].isFinal) {
+          console.log('✅ Palavra-chave detectada! Comando:', command);
+          handleVoiceCommand(command);
+        }
       }
     };
 
@@ -50,24 +68,34 @@ export default function Home() {
     recognition.onend = () => {
       setIsListening(false);
       // Reiniciar para sempre estar ouvindo
-      setTimeout(() => recognition.start(), 1000);
+      if (listenerActiveRef.current) {
+        setTimeout(() => {
+          try {
+            recognition.start();
+          } catch (e) {
+            console.error('Erro ao reiniciar reconhecimento:', e);
+          }
+        }, 500);
+      }
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('Erro ao iniciar reconhecimento:', e);
+    }
+
     recognitionRef.current = recognition;
   };
 
   const handleVoiceCommand = async (command: string) => {
-    // Remover "Jarvis" do comando
-    const cleanCommand = command.replace(/jarvis[.,!?]?/i, '').trim();
-
-    if (!cleanCommand) return;
+    if (!command.trim()) return;
 
     try {
-      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/chat', {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: cleanCommand })
+        body: JSON.stringify({ message: command })
       });
 
       const data = await response.json();
@@ -75,18 +103,19 @@ export default function Home() {
 
       setMessages(prev => [
         ...prev,
-        { role: 'user', content: cleanCommand },
+        { role: 'user', content: command },
         { role: 'assistant', content: reply }
       ]);
 
       // Fazer Jarvis falar
-      await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/speak', {
+      await fetch(`${API_URL}/api/speak`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: reply })
       });
     } catch (error) {
       console.error('Erro:', error);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Erro na comunicação com o servidor' }]);
     }
   };
 
@@ -96,12 +125,12 @@ export default function Home() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="text-5xl">🤖</div>
+            <div className="text-5xl animate-bounce">🤖</div>
             <h1 className="text-5xl font-bold text-white drop-shadow-lg">SIGMA JARVIS</h1>
           </div>
           <p className="text-purple-200 text-lg">Assistente de IA com Controle Total do PC</p>
           <p className="text-purple-300 text-sm mt-2">
-            {isListening ? '🎤 Ouvindo por palavra-chave "Jarvis"...' : '⏸️ Microfone inativo'}
+            {isListening ? '🎤 Ouvindo por palavra-chave "Jarvis"...' : '⏸️ Microfone aguardando'}
           </p>
         </div>
 

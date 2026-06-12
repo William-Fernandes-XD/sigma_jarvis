@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 
+const API_URL = 'http://localhost:3001';
+
 interface Message {
   role: string;
   content: string;
@@ -26,7 +28,7 @@ export default function ChatInterface({ messages, setMessages }: ChatInterfacePr
     try {
       setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
 
-      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/chat', {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage })
@@ -38,7 +40,7 @@ export default function ChatInterface({ messages, setMessages }: ChatInterfacePr
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
 
       // Fazer Jarvis falar
-      await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/speak', {
+      await fetch(`${API_URL}/api/speak`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: reply })

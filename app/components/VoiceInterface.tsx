@@ -23,7 +23,7 @@ export default function VoiceInterface({ isListening, messages }: VoiceInterface
         <p className="text-purple-200 text-lg">
           {isListening 
             ? 'Diga "Jarvis" para ativar' 
-            : 'Clique no microfone para começar'}
+            : 'O microfone está ligado e aguardando'}
         </p>
       </div>
 
@@ -53,6 +53,7 @@ export default function VoiceInterface({ isListening, messages }: VoiceInterface
               <li>• "Jarvis abra o YouTube"</li>
               <li>• "Jarvis qual é a hora?"</li>
               <li>• "Jarvis crie um arquivo"</li>
+              <li>• "Jarvis abra o Excel"</li>
             </ul>
           </div>
         ) : (

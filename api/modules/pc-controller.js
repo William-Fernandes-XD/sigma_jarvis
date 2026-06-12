@@ -39,7 +39,7 @@ export class PCController {
     }
 
     // Word
-    if (lower.includes('word')) {
+    if (lower.includes('word') || lower.includes('documento')) {
       await this.openApplication('word');
       return { message: 'Abrindo Word', action: 'open_word' };
     }
@@ -56,27 +56,30 @@ export class PCController {
       return { message: 'Abrindo Spotify', action: 'open_spotify' };
     }
 
+    // PowerPoint
+    if (lower.includes('powerpoint') || lower.includes('apresentação')) {
+      await this.openApplication('powerpoint');
+      return { message: 'Abrindo PowerPoint', action: 'open_powerpoint' };
+    }
+
     // Criar arquivo
     if (lower.includes('crie') && lower.includes('arquivo')) {
       const fileName = this.extractFileName(input);
       await this.createFile(fileName);
-      return { message: `Arquivo ${fileName} criado`, action: 'create_file' };
+      return { message: `Arquivo ${fileName} criado em Documentos`, action: 'create_file' };
     }
 
-    // Volume
-    if (lower.includes('aument') && lower.includes('volume')) {
-      await this.setVolume(100);
-      return { message: 'Volume aumentado', action: 'volume_up' };
+    // Abrir pasta
+    if (lower.includes('abra') && lower.includes('pasta')) {
+      await this.openFolder();
+      return { message: 'Pasta de Documentos aberta', action: 'open_folder' };
     }
 
-    if (lower.includes('diminu') && lower.includes('volume')) {
-      await this.setVolume(0);
-      return { message: 'Volume diminuído', action: 'volume_down' };
-    }
-
-    // Desligar
-    if (lower.includes('desligar') || lower.includes('shutdown')) {
-      return { message: 'Desligando PC', action: 'shutdown' };
+    // Pesquisar na web
+    if (lower.includes('pesquise') || lower.includes('busque')) {
+      const query = this.extractQuery(input);
+      await this.searchWeb(query);
+      return { message: `Pesquisando por: ${query}`, action: 'web_search' };
     }
 
     return null;
@@ -92,41 +95,46 @@ export class PCController {
         await execAsync(`xdg-open ${url}`);
       }
     } catch (error) {
-      throw error;
+      console.error('Erro ao abrir URL:', error);
     }
   }
 
   async openApplication(appName) {
     const apps = {
       chrome: {
-        win32: 'chrome',
+        win32: 'start chrome',
         darwin: 'open -a "Google Chrome"',
-        linux: 'google-chrome'
+        linux: 'google-chrome &'
       },
       firefox: {
-        win32: 'firefox',
+        win32: 'start firefox',
         darwin: 'open -a Firefox',
-        linux: 'firefox'
+        linux: 'firefox &'
       },
       excel: {
-        win32: 'excel',
+        win32: 'start excel',
         darwin: 'open -a "Microsoft Excel"',
-        linux: 'libreoffice --calc'
+        linux: 'libreoffice --calc &'
       },
       word: {
-        win32: 'winword',
+        win32: 'start winword',
         darwin: 'open -a "Microsoft Word"',
-        linux: 'libreoffice --writer'
+        linux: 'libreoffice --writer &'
+      },
+      powerpoint: {
+        win32: 'start powerpnt',
+        darwin: 'open -a "Microsoft PowerPoint"',
+        linux: 'libreoffice --impress &'
       },
       vscode: {
-        win32: 'code',
+        win32: 'start code',
         darwin: 'open -a "Visual Studio Code"',
-        linux: 'code'
+        linux: 'code &'
       },
       spotify: {
-        win32: 'spotify',
+        win32: 'start spotify',
         darwin: 'open -a Spotify',
-        linux: 'spotify'
+        linux: 'spotify &'
       }
     };
 
@@ -138,45 +146,55 @@ export class PCController {
     try {
       await execAsync(cmd);
     } catch (error) {
-      throw error;
+      console.error(`Erro ao abrir ${appName}:`, error);
     }
   }
 
   async createFile(fileName) {
-    const filePath = path.join(os.homedir(), 'Documents', fileName);
-    fs.writeFileSync(filePath, '');
-    return filePath;
-  }
-
-  async setVolume(level) {
-    if (this.platform === 'win32') {
-      // Windows volume control
-      const script = `
-Add-Type -TypeDefinition @"
-  using System.Runtime.InteropServices;
-  public class VolumeControl {
-    [DllImport("nircmd.dll", SetLastError = true)]
-    public static extern bool nircmd(string args);
-  }
-"@
-`;
-      await execAsync(`powershell -Command "${script} [VolumeControl]::nircmd('setsysvolume ${level}')"`);
+    try {
+      const docsPath = path.join(os.homedir(), 'Documents');
+      const filePath = path.join(docsPath, fileName);
+      
+      // Criar pasta se não existir
+      if (!fs.existsSync(docsPath)) {
+        fs.mkdirSync(docsPath, { recursive: true });
+      }
+      
+      fs.writeFileSync(filePath, '');
+      return filePath;
+    } catch (error) {
+      console.error('Erro ao criar arquivo:', error);
     }
   }
 
+  async openFolder() {
+    try {
+      const docsPath = path.join(os.homedir(), 'Documents');
+      if (this.platform === 'win32') {
+        await execAsync(`start "" "${docsPath}"`);
+      } else if (this.platform === 'darwin') {
+        await execAsync(`open "${docsPath}"`);
+      } else if (this.platform === 'linux') {
+        await execAsync(`xdg-open "${docsPath}"`);
+      }
+    } catch (error) {
+      console.error('Erro ao abrir pasta:', error);
+    }
+  }
+
+  async searchWeb(query) {
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    await this.openUrl(searchUrl);
+  }
+
   extractFileName(input) {
-    const match = input.match(/(?:crie|criar)\s+(?:um\s+)?(?:arquivo|file)\s+(?:chamado|de|nome|named)\s+([\w.]+)/i);
-    return match ? match[1] : 'novo_arquivo.txt';
+    const match = input.match(/(?:crie|criar)\s+(?:um\s+)?(?:arquivo|file)\s+(?:chamado|de|nome|named)\s+([\w.\s]+?)(?:\s+|$)/i);
+    return match ? match[1].trim() + '.txt' : 'novo_arquivo.txt';
   }
 
-  async excelControl(action, data) {
-    // Implementar controle de Excel
-    return { success: true, message: 'Excel controlado' };
-  }
-
-  async fileControl(action, data) {
-    // Implementar controle de arquivos
-    return { success: true, message: 'Arquivo criado' };
+  extractQuery(input) {
+    const match = input.match(/(?:pesquise|busque|procure)\s+(?:por\s+)?([^.!?]+)/i);
+    return match ? match[1].trim() : 'desenvolvimento';
   }
 
   async executeAction(action, params) {
